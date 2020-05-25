@@ -3,6 +3,7 @@
 # ----- Importa e inicia pacotes
 import pygame
 import random
+import sys
 
 pygame.init()
 pygame.mixer.init()
@@ -11,6 +12,14 @@ WIDTH = 1000
 HEIGHT = 500
 CHAR_WIDTH = 200
 CHAR_HEIGHT = 180
+GRAVITY = 2
+JUMP_SIZE = 5
+GROUND = HEIGHT * 5 //6
+# Define estados possíveis do jogador
+STILL = 0
+JUMPING = 1
+FALLING = 2
+
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Dungeons of Insper')
 
@@ -19,11 +28,11 @@ def load_assets():
     assets={}
     assets["background"] = pygame.image.load('Dungeons/fundonormal.png').convert()
     assets["background"] = pygame.transform.scale(assets["background"], (WIDTH, HEIGHT))
-    assets["char_img"]= pygame.image.load ('Dungeons/manuelcerto.png').convert_alpha()
+    assets["char_img"]= pygame.image.load ('Dungeons/manuelcerto2.png').convert_alpha()
     assets["char_img"] = pygame.transform.scale(assets["char_img"], (CHAR_WIDTH, CHAR_HEIGHT))
-    assets["mob_img"] = pygame.image.load('Dungeons/soldadinho.png').convert_alpha()
+    assets["mob_img"] = pygame.image.load('Dungeons/soldadinho-1.png.png').convert_alpha()
     assets["mob_img"] = pygame.transform.scale(assets["mob_img"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
-    pygame.mixer.music.load('Dungeons/rpgsong.ogg')
+    pygame.mixer.music.load('Dungeons/videoplayback.ogg')
     pygame.mixer.music.set_volume(0.1)
     return assets
 
@@ -33,11 +42,15 @@ class Character(pygame.sprite.Sprite):
         self.image = assets["char_img"]
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
-        self.rect.centerx = WIDTH / 2
-        self.rect.bottom = HEIGHT - 10
+        self.rect.centerx = WIDTH // 2
+        self.rect.bottom = HEIGHT//6 - 10
         self.speedx = 0
         self.groups = groups
         self.assets = assets
+        self.rect.top = 0
+        self.speedy = 0
+        self.state = STILL
+
 
     def update(self):
         self.rect.x += self.speedx
@@ -46,6 +59,25 @@ class Character(pygame.sprite.Sprite):
             self.rect.right = WIDTH
         if self.rect.left < 0:
             self.rect.left = 0
+        self.speedy += GRAVITY
+        # Atualiza o estado para caindo
+        if self.speedy > 0:
+            self.state = FALLING
+            self.rect.y += self.speedy
+        # Se bater no chão, para de cair
+        if self.rect.bottom > GROUND:
+            # Reposiciona para a posição do chão
+            self.rect.bottom = GROUND
+            # Para de cair
+            self.speedy = 0
+            self.state = STILL
+
+    def jump(self):
+        # Só pode pular se ainda não estiver pulando ou caindo
+        if self.state == STILL:
+            self.speedy -= JUMP_SIZE
+            self.state = JUMPING
+            
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self, assets):
@@ -53,7 +85,7 @@ class Mob(pygame.sprite.Sprite):
         self.image = assets["mob_img"]
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
-        self.rect.bottom = HEIGHT - 10
+        self.rect.bottom = HEIGHT*5//6 - 10
         self.rect.x = random.randint(WIDTH // 2, WIDTH-CHAR_WIDTH)
         self.speedx = 1
 
@@ -102,6 +134,8 @@ def tela1(window):
                         player.speedx -= 2
                     if event.key == pygame.K_RIGHT:
                         player.speedx += 2
+                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                        player.jump()
             if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
                         player.speedx += 2
@@ -145,24 +179,32 @@ def tela2(window):
     DONE = 0
     PLAYING = 3
     state = PLAYING
-
+    keys_down = {}
+    
     pygame.mixer.music.play(loops=-1)
+    
     while state != DONE:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 state = DONE
-                return SAIR
-            if event.type == pygame.KEYDOWN:
+            if state == PLAYING:    
+                if event.type == pygame.KEYDOWN:
+                    keys_down[event.key] = True
                     if event.key == pygame.K_LEFT:
                         player.speedx -= 2
                     if event.key == pygame.K_RIGHT:
                         player.speedx += 2
-            if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_LEFT:
-                        player.speedx += 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx -= 2
+                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                        player.jump()
+                if event.type == pygame.KEYUP:
+                    if event.key in keys_down and keys_down[event.key]:
+                        if event.key == pygame.K_LEFT:
+                            player.speedx += 2
+                        if event.key == pygame.K_RIGHT:
+                            player.speedx -= 2
+                    keys_down[event.key] = False
         #Atualiza Jogo
+            
 
         all_sprites.update()
 
@@ -184,3 +226,5 @@ while estado != SAIR:
         estado = tela2(window)
 
 pygame.quit()
+sys.exit()
+
