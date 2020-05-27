@@ -19,6 +19,7 @@ GROUND = HEIGHT * 5 //6
 STILL = 4
 JUMPING = 5
 FALLING = 6
+ATTACK_char = 7
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Dungeons of Insper')
@@ -30,8 +31,8 @@ def load_assets():
     assets["background"] = pygame.transform.scale(assets["background"], (WIDTH, HEIGHT))
     assets["char_img"]= pygame.image.load('Dungeons/teste_heroi_2.png').convert_alpha()
     assets["char_img"] = pygame.transform.scale(assets["char_img"], (CHAR_WIDTH, CHAR_HEIGHT))
-    assets["char_atacc"]= pygame.image.load('Dungeons/teste_heroi.png').convert_alpha()
-    assets["char_"] = pygame.transform.scale(assets["char_atacc"], (CHAR_WIDTH, CHAR_HEIGHT))
+    assets["char_atacc"] = pygame.image.load('Dungeons/teste_heroi.png').convert_alpha()
+    assets["char_atacc"] = pygame.transform.scale(assets["char_atacc"], (CHAR_WIDTH, CHAR_HEIGHT))
     assets["mob_atacc"] = pygame.image.load('Dungeons/mob_certo.png').convert_alpha()
     assets["mob_atacc"] = pygame.transform.scale(assets["mob_atacc"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
     assets["mob_normal"] = pygame.image.load('Dungeons/sprite_2_mob.png').convert_alpha()
@@ -55,8 +56,9 @@ class Character(pygame.sprite.Sprite):
         self.rect.top = 0
         self.speedy = 0
         self.state = STILL
-        self.lives = 2
-
+        self.lives = 1
+        self.attacking = False
+        
 
     def update(self):
         self.rect.x += self.speedx
@@ -77,6 +79,10 @@ class Character(pygame.sprite.Sprite):
             # Para de cair
             self.speedy = 0
             self.state = STILL
+        if self.attacking:
+            self.image = self.assets["char_atacc"]
+        else:
+            self.image = self.assets["char_img"]
 
     def jump(self):
         # Só pode pular se ainda não estiver pulando ou caindo
@@ -97,7 +103,7 @@ class Mob(pygame.sprite.Sprite):
         self.speedx = 1
         self.last_attack = pygame.time.get_ticks()
         self.atacou = False
-        # self.state = STILL
+        self.state = STILL
 
     def update(self):
         self.rect.x += self.speedx
@@ -108,7 +114,7 @@ class Mob(pygame.sprite.Sprite):
             if not self.atacou:
                 self.atacou = True
                 self.image = self.assets["mob_atacc"]
-                # self.state = ATTACK
+                self.state = ATTACK_char
             elif now - self.last_attack > 1500:
                 self.atacou = False
                 self.last_attack = now
@@ -144,7 +150,7 @@ def tela1(window):
     state = PLAYING
     keys_down = {}
     #score = 0
-    #lives = 3
+    #lives = 1
     pygame.mixer.music.play(loops=-1)
     while state != DONE:
         for event in pygame.event.get():
@@ -157,6 +163,8 @@ def tela1(window):
                     player.speedx -= 2
                 if event.key == pygame.K_RIGHT:
                     player.speedx += 2
+                if event.key == pygame.K_k:
+                    player.attacking = True
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                     player.jump()
             if event.type == pygame.KEYUP:
@@ -165,44 +173,50 @@ def tela1(window):
                         player.speedx += 2
                     if event.key == pygame.K_RIGHT:
                         player.speedx -= 2
+                    if event.key == pygame.K_k:
+                        player.attacking = False
                 keys_down[event.key] = False
         #Atualiza Jogo
 
         all_sprites.update()
 
         if state == PLAYING:
-            hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
-            for mob in hits:
-                player.lives -= 1
-                if player.lives == 0:
-                    return SAIR
+            hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
+            if player.attacking:
+                for mob in hits:
+                    mob.kill()
+            else:
+                for mob in hits:
+                    player.lives -= 1
+                    if player.lives == 0:
+                        return SAIR
             
-            
+
             
             if len(all_mobs) == 0:
                 return TELA2
 
-            hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
-            if len(hits) > 0:
-                # Toca o som da colisão
-                #assets['boom_sound'].play()
-                player.kill()
-                #lives -= 1
-                #explosao = Explosion(player.rect.center, assets)
-                #all_sprites.add(explosao)
-                state = EXPLODING
-                keys_down = {}
-                explosion_tick = pygame.time.get_ticks()
-                explosion_duration = explosao.frame_ticks * len(explosao.explosion_anim) + 400
-        elif state == EXPLODING:
-            now = pygame.time.get_ticks()
-            if now - explosion_tick > explosion_duration:
-                if lives == 0:
-                    state = DONE
-                else:
-                    state = PLAYING
-                    player = Ship(groups, assets)
-                    all_sprites.add(player)
+        #     hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
+        #     if len(hits) > 0:
+        #         # Toca o som da colisão
+        #         #assets['boom_sound'].play()
+        #         player.kill()
+        #         #lives -= 1
+        #         #explosao = Explosion(player.rect.center, assets)
+        #         #all_sprites.add(explosao)
+        #         state = EXPLODING
+        #         keys_down = {}
+        #         explosion_tick = pygame.time.get_ticks()
+        #         explosion_duration = explosao.frame_ticks * len(explosao.explosion_anim) + 400
+        # elif state == EXPLODING:
+        #     now = pygame.time.get_ticks()
+        #     if now - explosion_tick > explosion_duration:
+        #         if lives == 0:
+        #             state = DONE
+        #         else:
+        #             state = PLAYING
+        #             player = Ship(groups, assets)
+        #             all_sprites.add(player)
 
         window.fill((0, 0, 0))  # Preenche com a cor preta
         window.blit(assets['background'], (0, 0))
@@ -225,8 +239,8 @@ def tela2(window):
     player = Character(groups, assets)
     all_sprites.add(player)
 
-    for i in range(4):
-        mob = Mob(assets)
+    for i in range(15):
+        mob = Mob(assets) 
         all_sprites.add(mob)
         all_mobs.add(mob)
 
@@ -250,27 +264,41 @@ def tela2(window):
                         player.speedx += 2
                     if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                         player.jump()
+                    if event.key == pygame.K_k:
+                        player.attacking = True
                 if event.type == pygame.KEYUP:
                     if event.key in keys_down and keys_down[event.key]:
                         if event.key == pygame.K_LEFT:
                             player.speedx += 2
                         if event.key == pygame.K_RIGHT:
                             player.speedx -= 2
+                        if event.key == pygame.K_k:
+                            player.attacking = False
                     keys_down[event.key] = False
         #Atualiza Jogo
-            
+        
 
         all_sprites.update()
-
+        
         if state == PLAYING:
-            hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
+            if player.attacking:
+                for mob in hits:
+                    mob.kill()
+            else:
+                for mob in hits:
+                    player.lives -= 1
+                    if player.lives == 0:
+                        return SAIR
 
+            if len(all_mobs) == 0:
+                return TELA3
+        
         window.fill((0, 0, 0))  # Preenche com a cor branca
         window.blit(assets['background'], (0, 0))
         all_sprites.draw(window)
 
         pygame.display.update()
-
 
 estado = TELA1
 while estado != SAIR:
