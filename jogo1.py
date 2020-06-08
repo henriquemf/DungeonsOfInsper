@@ -31,6 +31,8 @@ def load_assets():
     assets={}
     assets["background"] = pygame.image.load('Dungeons/fundonormal.png').convert()
     assets["background"] = pygame.transform.scale(assets["background"], (WIDTH, HEIGHT))
+    assets['Tela_introducao'] = pygame.image.load('Dungeons/Tela_introducao.png').convert()
+    assets['Tela_introducao'] = pygame.transform.scale(assets["Tela_introducao"],(WIDTH,HEIGHT))
     assets["telainicio1"] = pygame.image.load('Dungeons/telainicio1.png').convert()
     assets["telainicio1"] = pygame.transform.scale(assets["telainicio1"], (WIDTH, HEIGHT))
     assets["char_img"]= pygame.image.load('Dungeons/teste_heroi_2.png').convert_alpha()
@@ -41,7 +43,7 @@ def load_assets():
     assets["mob_atacc"] = pygame.transform.scale(assets["mob_atacc"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
     assets["mob_normal"] = pygame.image.load('Dungeons/sprite_2_mob.png').convert_alpha()
     assets["mob_normal"] = pygame.transform.scale(assets["mob_normal"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
-    assets["mob_atacc2"] = pygame.image.load('Dungeons/sprite_2_mob_vermelho (1).png').convert_alpha()
+    assets["mob_atacc2"] = pygame.image.load('Dungeons/sprite_2_mob_vermelho_1.png').convert_alpha()
     assets["mob_atacc2"] = pygame.transform.scale(assets["mob_atacc2"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
     assets["mob_normal2"] = pygame.image.load('Dungeons/sprite_2_mob_vermelho.png').convert_alpha()
     assets["mob_normal2"] = pygame.transform.scale(assets["mob_normal2"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
@@ -267,11 +269,40 @@ class Bullet(pygame.sprite.Sprite):
 
 #-------Tela do jogo
 SAIR = -1
+TELA_1 = -10
 TELA0 = -2
 TELA1 = 1
 TELA2 = 2
 TELA3 = 9
-#----- Tela 1
+#----- Tela -1
+
+def tela_1(window):
+    clock = pygame.time.Clock()
+    assets = load_assets()
+    FPS = 15
+
+    all_sprites = pygame.sprite.Group()
+    DONE = 0
+    PLAYING = 3
+    state = PLAYING
+    keys_down = {}
+    pygame.mixer.music.play(loops=-1)
+    
+    while state != DONE:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                state = DONE
+                return SAIR    
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return TELA0
+    
+        window.fill((0, 0, 0))  # Preenche com a cor preta
+        window.blit(assets['Tela_introducao'], (0, 0))
+        all_sprites.draw(window)   
+        pygame.display.update()
+
+
 
 def tela0(window):
     clock = pygame.time.Clock()
@@ -327,15 +358,14 @@ def tela0(window):
         global score
         if state == PLAYING:
             hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
-            if player.attacking:
-                for mob in hits:
+            for mob in hits:
+                if player.attacking:
                     mob.kill()
                     score += 100
                     print(score)
-                if score % 1000 == 0:
-                    lives += 1              
-            else:
-                for mob in hits:
+                    if score % 1000 == 0:
+                        lives += 1
+                else:
                     lives -= 1
                     if lives == 0:
                         return SAIR
@@ -414,18 +444,18 @@ def tela1(window):
         global score
         if state == PLAYING:
             hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
-            if player.attacking:
-                for mob in hits:
+            for mob in hits:
+                if player.attacking:
                     mob.kill()
                     score += 100
                     print(score)
-                if score % 1000 == 0:
-                    lives += 1
-            else:
-                for mobs in hits:
-                    lives -= 1
-                    if lives == 0:
-                        return SAIR
+                    if score % 1000 == 0:
+                        lives += 1
+                else:
+                    for mobs in hits:
+                        lives -= 1
+                        if lives == 0:
+                            return SAIR
                         
             if len(all_mobs) == 0 : 
                 return TELA2
@@ -472,7 +502,7 @@ def tela2(window):
     
     pygame.mixer.music.play(loops=-1)
 
-    available_mobs2 = 12
+    available_mobs2 = 2
     last_mob2 = pygame.time.get_ticks()
     
     while state != DONE:
@@ -514,15 +544,14 @@ def tela2(window):
         global lives
         if state == PLAYING:
             hits = pygame.sprite.spritecollide(player, all_mobs2, False, pygame.sprite.collide_mask)
-            if player.attacking:
-                for mob2 in hits:
+            for mob2 in hits:
+                if player.attacking:
                     mob2.kill()
                     score += 100
                     print(score)
-                if score % 1000 :
-                    lives += 1
-            else:
-                for mob2 in hits:
+                    if score % 1000 == 0 :
+                        lives += 1
+                else:
                     lives -= 1
                     if lives == 0:
                         return SAIR
@@ -615,22 +644,17 @@ def tela3(window):
         global lives
         if state == PLAYING:
             hits = pygame.sprite.spritecollide(player, all_bosses, False, pygame.sprite.collide_mask)
-            if player.attacking:
-                for boss in hits:
+            for boss in hits:
+                if player.attacking:
                     boss.kill()
-                    score+=100
-            else:
-                for boss in hits:
+                else:
                     lives -= 1
                     if lives == 0:
                         return SAIR
-        
-        
-            hits = pygame.sprite.spritecollide(player, all_bullets, True, pygame.sprite.collide_mask)
+
+            hits = pygame.sprite.spritecollide(player, all_bullets, False, pygame.sprite.collide_mask)
             for bullet in hits:
-                # player.lives -= 3
                 lives -= 3
-                # if player.lives == 0:
                 if lives == 0:
                     return SAIR
      
@@ -654,9 +678,11 @@ def tela3(window):
 
         pygame.display.update()
 
-estado = TELA1
+estado = TELA_1
 while estado != SAIR:
-    if estado == TELA0:
+    if estado == TELA_1:
+        estado = tela_1(window)
+    elif estado == TELA0:
         estado = tela0(window)
     elif estado == TELA1:
         estado = tela1(window)
@@ -667,3 +693,4 @@ while estado != SAIR:
 
 pygame.quit()
 sys.exit()
+
