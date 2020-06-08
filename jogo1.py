@@ -31,6 +31,8 @@ def load_assets():
     assets={}
     assets["background"] = pygame.image.load('Dungeons/fundonormal.png').convert()
     assets["background"] = pygame.transform.scale(assets["background"], (WIDTH, HEIGHT))
+    assets["telainicio1"] = pygame.image.load('Dungeons/telainicio1.png').convert()
+    assets["telainicio1"] = pygame.transform.scale(assets["telainicio1"], (WIDTH, HEIGHT))
     assets["char_img"]= pygame.image.load('Dungeons/teste_heroi_2.png').convert_alpha()
     assets["char_img"] = pygame.transform.scale(assets["char_img"], (CHAR_WIDTH, CHAR_HEIGHT))
     assets["char_atacc"] = pygame.image.load('Dungeons/teste_heroi.png').convert_alpha()
@@ -39,8 +41,12 @@ def load_assets():
     assets["mob_atacc"] = pygame.transform.scale(assets["mob_atacc"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
     assets["mob_normal"] = pygame.image.load('Dungeons/sprite_2_mob.png').convert_alpha()
     assets["mob_normal"] = pygame.transform.scale(assets["mob_normal"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
+    assets["mob_atacc2"] = pygame.image.load('Dungeons/sprite_2_mob_vermelho (1).png').convert_alpha()
+    assets["mob_atacc2"] = pygame.transform.scale(assets["mob_atacc2"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
+    assets["mob_normal2"] = pygame.image.load('Dungeons/sprite_2_mob_vermelho.png').convert_alpha()
+    assets["mob_normal2"] = pygame.transform.scale(assets["mob_normal2"], (CHAR_WIDTH - 25, CHAR_HEIGHT-40))
     assets["boss"] = pygame.image.load('Dungeons/boss_bola_de_fogo.png').convert_alpha()
-    assets["boss"] = pygame.transform.scale(assets["boss"], (CHAR_WIDTH - 40, CHAR_HEIGHT-60))
+    assets["boss"] = pygame.transform.scale(assets["boss"], (CHAR_WIDTH+10, CHAR_HEIGHT+20))
     assets["fundo_boss"] = pygame.image.load('Dungeons/fundo_boss.png'). convert_alpha()
     assets["fundo_boss"] = pygame.transform.scale(assets["fundo_boss"], (WIDTH, HEIGHT))
     assets["fundo2"] = pygame.image.load('Dungeons/fundo2.png').convert_alpha()
@@ -67,7 +73,7 @@ class Character(pygame.sprite.Sprite):
         self.rect.top = 0
         self.speedy = 0
         self.state = STILL
-        self.lives = 3
+        # self.lives = 3
         self.attacking = False
         
 
@@ -111,7 +117,7 @@ class Character(pygame.sprite.Sprite):
             self.attacking = True
             self.image = self.assets["char_atacc"]
             self.last_attack = pygame.time.get_ticks()
-            self.time_to_attack = 200
+            self.time_to_attack = 2000
 
 class Mob(pygame.sprite.Sprite):
     def __init__(self, assets):
@@ -155,6 +161,48 @@ class Mob(pygame.sprite.Sprite):
             self.speedx = -self.speedx
         self.rect.y += self.speedy
 
+class Mob2(pygame.sprite.Sprite):
+    def __init__(self, assets):
+        pygame.sprite.Sprite.__init__(self)
+        self.assets = assets
+        self.image = assets["mob_normal2"]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.bottom = HEIGHT*5//6 - 10
+        self.rect.x = random.randint(WIDTH // 2, WIDTH-CHAR_WIDTH)
+        self.speedy = 0
+        self.speedx = 1
+        self.last_attack = pygame.time.get_ticks()
+        self.last_jump = pygame.time.get_ticks()
+        self.time_to_jump = random.randint(2000, 5000)
+        self.atacou = False
+        self.state = STILL
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_attack > 1000:
+            if not self.atacou:
+                self.atacou = True
+                self.image = self.assets["mob_atacc2"]
+                self.state = ATTACK_char
+            elif now - self.last_attack > 1500:
+                self.atacou = False
+                self.last_attack = now
+                self.image = self.assets["mob_normal2"]
+        if now - self.last_jump > self.time_to_jump:
+            self.time_to_jump = random.randint(1000, 2000)
+            self.last_jump = now
+            self.speedy -= random.randint( 30, 40)
+        self.speedy += GRAVITY
+        if self.rect.bottom > GROUND:
+            self.rect.bottom = GROUND
+            self.speedy = 0        
+        
+        self.rect.x += self.speedx
+        if self.rect.left < 0 or self.rect.right > WIDTH:
+            self.speedx = -self.speedx
+        self.rect.y += self.speedy
+
 class Boss(pygame.sprite.Sprite):
     def __init__(self, assets, groups):
         pygame.sprite.Sprite.__init__(self)
@@ -181,13 +229,13 @@ class Boss(pygame.sprite.Sprite):
         if self.rect.left < 0 or self.rect.right > WIDTH:
             self.speedx = -self.speedx
         now = pygame.time.get_ticks()
-        if now - self.last_attack > 5000:
+        if now - self.last_attack > 2000:
             if not self.atacou:
                 self.atacou = True
                 self.image = self.assets["boss"]
                 self.state = ATTACK_char
                 self.shoot()
-            elif now - self.last_attack > 5500:
+            elif now - self.last_attack > 2500:
                 self.atacou = False
                 self.last_attack = now
                 self.image = self.assets["boss"]
@@ -216,14 +264,16 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
+
 #-------Tela do jogo
 SAIR = -1
+TELA0 = -2
 TELA1 = 1
 TELA2 = 2
 TELA3 = 9
 #----- Tela 1
 
-def tela1(window):
+def tela0(window):
     clock = pygame.time.Clock()
     assets = load_assets()
     FPS = 15
@@ -245,7 +295,92 @@ def tela1(window):
     PLAYING = 3
     state = PLAYING
     keys_down = {}
-    player.lives = 3
+    pygame.mixer.music.play(loops=-1)
+    while state != DONE:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                state = DONE
+                return SAIR
+            if event.type == pygame.KEYDOWN:
+                keys_down[event.key] = True
+                if event.key == pygame.K_LEFT:
+                    player.speedx -= 2
+                if event.key == pygame.K_RIGHT:
+                    player.speedx += 2
+                if event.key == pygame.K_k:
+                    player.attack()
+                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                    player.jump()
+            if event.type == pygame.KEYUP:
+                if event.key in keys_down and keys_down[event.key]:
+                    if event.key == pygame.K_LEFT:
+                        player.speedx += 2
+                    if event.key == pygame.K_RIGHT:
+                        player.speedx -= 2
+                    
+                keys_down[event.key] = False
+        #Atualiza Jogo
+
+        all_sprites.update()
+        
+        global lives
+        global score
+        if state == PLAYING:
+            hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
+            if player.attacking:
+                for mob in hits:
+                    mob.kill()
+                    score += 100
+                    print(score)
+                if score % 1000 == 0:
+                    lives += 1              
+            else:
+                for mob in hits:
+                    lives -= 1
+                    if lives == 0:
+                        return SAIR
+                        
+            if len(all_mobs) == 0 : 
+                return TELA1
+        
+        window.fill((0, 0, 0))  # Preenche com a cor preta
+        window.blit(assets['telainicio1'], (0, 0))
+        all_sprites.draw(window)
+
+        text_surface = assets['score_font'].render("{:08d}".format(score), True, (255, 255, 0))
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (WIDTH / 2,  10)
+        window.blit(text_surface, text_rect)
+        
+        text_surface = assets['score_font2'].render(chr(9829) * lives, True, (255, 0, 0))
+        text_rect = text_surface.get_rect()
+        text_rect.bottomleft = (10, HEIGHT - 10)
+        window.blit(text_surface, text_rect)
+    
+        pygame.display.update()    
+
+def tela1(window):
+    clock = pygame.time.Clock()
+    assets = load_assets()
+    FPS = 15
+
+    all_sprites = pygame.sprite.Group()
+    all_mobs = pygame.sprite.Group()
+    groups = {}
+    groups['all_sprites'] = all_sprites
+    groups['all_mobs'] = all_mobs
+    player = Character(groups, assets)
+    all_sprites.add(player)
+
+    for i in range(5):
+        mob = Mob(assets)
+        all_sprites.add(mob)
+        all_mobs.add(mob)
+
+    DONE = 0
+    PLAYING = 3
+    state = PLAYING
+    keys_down = {}
     pygame.mixer.music.play(loops=-1)
     while state != DONE:
         for event in pygame.event.get():
@@ -275,24 +410,26 @@ def tela1(window):
 
         all_sprites.update()
         
+        global lives
         global score
         if state == PLAYING:
-            hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(player, all_mobs, False, pygame.sprite.collide_mask)
             if player.attacking:
                 for mob in hits:
                     mob.kill()
                     score += 100
                     print(score)
-            if score % 1000 == 0:
-                player.lives += 1
+                if score % 1000 == 0:
+                    lives += 1
             else:
-                for mob in hits:
-                    player.lives -= 1
-                    if player.lives == 0:
+                for mobs in hits:
+                    lives -= 1
+                    if lives == 0:
                         return SAIR
                         
-            if len(all_mobs) == 0:
+            if len(all_mobs) == 0 : 
                 return TELA2
+            
 
 
         window.fill((0, 0, 0))  # Preenche com a cor preta
@@ -319,10 +456,10 @@ def tela2(window):
     FPS = 15
 
     all_sprites = pygame.sprite.Group()
-    all_mobs = pygame.sprite.Group()
+    all_mobs2 = pygame.sprite.Group()
     groups = {}
     groups['all_sprites'] = all_sprites
-    groups['all_mobs'] = all_mobs
+    groups['all_mobs2'] = all_mobs2
     player = Character(groups, assets)
     all_sprites.add(player)
 
@@ -335,8 +472,8 @@ def tela2(window):
     
     pygame.mixer.music.play(loops=-1)
 
-    available_mobs = 12
-    last_mob = pygame.time.get_ticks()
+    available_mobs2 = 12
+    last_mob2 = pygame.time.get_ticks()
     
     while state != DONE:
         for event in pygame.event.get():
@@ -364,30 +501,33 @@ def tela2(window):
                     keys_down[event.key] = False
         #Atualiza Jogo
         now = pygame.time.get_ticks()
-        if available_mobs > 0 and now - last_mob > 500:
-            mob = Mob(assets) 
-            all_sprites.add(mob)
-            all_mobs.add(mob)
-            available_mobs -= 1
-            last_mob = now
+        if available_mobs2 > 0 and now - last_mob2 > 500:
+            mob2 = Mob2(assets) 
+            all_sprites.add(mob2)
+            all_mobs2.add(mob2)
+            available_mobs2 -= 1
+            last_mob2 = now
 
         all_sprites.update()
+       
         global score
+        global lives
         if state == PLAYING:
-            hits = pygame.sprite.spritecollide(player, all_mobs, True, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(player, all_mobs2, False, pygame.sprite.collide_mask)
             if player.attacking:
-                for mob in hits:
-                    mob.kill()
+                for mob2 in hits:
+                    mob2.kill()
                     score += 100
                     print(score)
-
+                if score % 1000 :
+                    lives += 1
             else:
-                for mob in hits:
-                    player.lives -= 1
-                    if player.lives == 0:
+                for mob2 in hits:
+                    lives -= 1
+                    if lives == 0:
                         return SAIR
 
-            if len(all_mobs) == 0 and available_mobs == 0:
+            if len(all_mobs2) == 0 and available_mobs2 == 0:
                 return TELA3
         
         window.fill((0, 0, 0))  # Preenche com a cor branca
@@ -423,7 +563,7 @@ def tela3(window):
     all_sprites.add(player)
 
     
-    for i in range(2):
+    for i in range(1):
         boss = Boss(assets, groups) 
         all_sprites.add(boss)
         all_bosses.add(boss)
@@ -472,30 +612,28 @@ def tela3(window):
 
         all_sprites.update()
         global score
+        global lives
         if state == PLAYING:
-            hits = pygame.sprite.spritecollide(player, all_bosses, True, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(player, all_bosses, False, pygame.sprite.collide_mask)
             if player.attacking:
                 for boss in hits:
                     boss.kill()
                     score+=100
             else:
                 for boss in hits:
-                    player.lives -= 1
-                    if player.lives == 0:
+                    lives -= 1
+                    if lives == 0:
                         return SAIR
         
         
             hits = pygame.sprite.spritecollide(player, all_bullets, True, pygame.sprite.collide_mask)
             for bullet in hits:
-                player.lives -= 3
-                if player.lives == 0:
+                # player.lives -= 3
+                lives -= 3
+                # if player.lives == 0:
+                if lives == 0:
                     return SAIR
-        #if state == PLAYING:
-            #shoot = pygame.sprite.groupcollide(boss, all_bullets, True, pygame.sprite.collide_mask)
-            #for boss in shoot: 
-                #player.lives=-1
-                #if player.lives == 0:
-                    #return SAIR
+     
     
             if len(all_bosses) == 0:
                 return SAIR
@@ -518,7 +656,9 @@ def tela3(window):
 
 estado = TELA1
 while estado != SAIR:
-    if estado == TELA1:
+    if estado == TELA0:
+        estado = tela0(window)
+    elif estado == TELA1:
         estado = tela1(window)
     elif estado == TELA2:
         estado = tela2(window)
@@ -527,4 +667,3 @@ while estado != SAIR:
 
 pygame.quit()
 sys.exit()
-
