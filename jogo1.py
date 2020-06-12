@@ -422,6 +422,66 @@ def tela_win(window):
         pygame.display.update()
 
 
+def tela_gameover(window):
+    clock = pygame.time.Clock()
+    assets = load_assets()
+    FPS = 15
+
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('Dungeons/musicagameover.mp3')
+    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.play()
+
+    all_sprites = pygame.sprite.Group()
+    DONE = 0
+    PLAYING = 3
+    state = PLAYING
+    keys_down = {}
+    pygame.mixer.music.play(loops=-1)
+    
+    while state != DONE:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                state = DONE
+                return SAIR    
+
+        window.fill((0, 0, 0))  # Preenche com a cor preta
+        window.blit(assets['gameover'], (0, 0))
+        all_sprites.draw(window)   
+        pygame.display.update()
+
+def tela_win(window):
+    clock = pygame.time.Clock()
+    assets = load_assets()
+    FPS = 15
+
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('Dungeons/musicawin.mp3')
+    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.play()
+
+    all_sprites = pygame.sprite.Group()
+    DONE = 0
+    PLAYING = 3
+    state = PLAYING
+    keys_down = {}
+    pygame.mixer.music.play(loops=-1)
+    
+    while state != DONE:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                state = DONE
+                return SAIR    
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return SAIR
+    
+        window.fill((0, 0, 0))  # Preenche com a cor preta
+        window.blit(assets['tela_win'], (0, 0))
+        all_sprites.draw(window)   
+        pygame.display.update()
+
+
 def tela_1(window):
     
     pygame.mixer.music.load('Dungeons/musicatela_1.mp3')
@@ -720,6 +780,10 @@ def tela2(window):
       
     global score
     global lives
+<<<<<<< HEAD
+=======
+    global mob2_lives
+>>>>>>> 819c1d6190fd7029efbdfd2e7cbbdbf310b6ae27
     DONE = 0
     PLAYING = 3
     state = PLAYING
@@ -1095,7 +1159,7 @@ def tela4(window):
 
         pygame.display.update()
 
-estado = TELA_1
+estado = TELA4
 while estado != SAIR:
     if estado == TELA_1:
         estado = tela_1(window)
