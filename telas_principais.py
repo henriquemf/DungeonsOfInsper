@@ -376,12 +376,13 @@ def tela3(window):
             for arqueiro in hits:
                 if player.attacking:
                     arqueiro.kill()
+                    score+=100
                 else:
                     lives -= 1
                     if lives <= 0:
-                        return SAIR
+                        return TELA_GAMEOVER
 
-            hits = pygame.sprite.spritecollide(player, all_flechas, False, pygame.sprite.collide_mask)
+            hits = pygame.sprite.spritecollide(player, all_flechas, True, pygame.sprite.collide_mask)
             for flechas in hits:
                 lives -= 2
                 if lives <= 0:
@@ -515,6 +516,7 @@ def tela4(window):
                     mob.lives -= 1
                     if mob.lives <= 0:
                         mob.kill()
+                        score+=100
                     if score % 1000 == 0 :
                         lives += 1
                 else:
