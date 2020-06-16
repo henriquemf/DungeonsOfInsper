@@ -19,7 +19,7 @@ from telas_principais import *
 pygame.init()
 pygame.mixer.init()
 
-estado = TELA3
+estado = TELA_1
 while estado != SAIR:
     if estado == TELA_1:
         estado = tela_1(window)
