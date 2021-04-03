@@ -1,32 +1,17 @@
 #Classe do segundo inimigo e definição de suas principais movimentações.
 import pygame
 import random 
+from ClasseInimigo import Inimigo
 from parametros import HEIGHT, WIDTH, CHAR_WIDTH, GRAVITY, STILL, GROUND, ATTACK_char 
 
-class Mob2(pygame.sprite.Sprite):
+class Mob2(Inimigo):
     '''Classe do primeiro inimigo e definição de suas movimentações.'''
     def __init__(self, assets, groups):
-        '''
-        Params:
-        - groups: dicionário de grupos de sprites do mob 2.
-        - assets: dicionário de assets com o mob2 de machado normal e mob atacando.
-        - funções: pulo do mob, ataque e definição das duas vidas.
-        '''
-        pygame.sprite.Sprite.__init__(self)
-        self.assets = assets
-        self.image = assets["mob_normal2"]
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.rect.bottom = HEIGHT*5//6 - 10
-        self.rect.x = random.randint(WIDTH // 2, WIDTH-CHAR_WIDTH)
+        super().__init__(assets, groups, 2, "mob_normal2")
         self.speedy = 0
-        self.speedx = 1
-        self.last_attack = pygame.time.get_ticks()
         self.last_jump = pygame.time.get_ticks()
         self.time_to_jump = random.randint(2000, 5000)
-        self.atacou = False
-        self.state = STILL
-        self.lives = 2
+
     
     #mudança de imagem se estiver atacando ou se estiver em seu estado normal.
     def update(self):
