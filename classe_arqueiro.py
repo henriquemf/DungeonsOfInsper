@@ -1,30 +1,14 @@
 import pygame
 import random 
+from ClasseInimigo import Inimigo
 from parametros import HEIGHT, WIDTH, CHAR_WIDTH, GRAVITY, STILL, GROUND, ATTACK_char 
 from classe_flecha import Flecha
 
-class Arqueiro(pygame.sprite.Sprite):
+class Arqueiro(Inimigo):
     '''Classe do primeiro inimigo e definição de suas movimentações.'''
     def __init__(self, assets, groups):
-        '''
-        Params:
-        - groups: dicionário de grupos de sprites do arqueiro.
-        - assets: dicionário de assets com o arqueiro com arco e flecha.
-        - funções: tiro do arqueiro para ataque.
-        '''
-        pygame.sprite.Sprite.__init__(self)
-        self.assets = assets
+        super().__init__(assets, groups, 1, "arqueiro")
         self.groups = groups
-        self.image = assets["arqueiro"]
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.rect.bottom = HEIGHT*5//6 - 10
-        self.rect.x = random.randint(WIDTH // 2, WIDTH-CHAR_WIDTH)
-        self.speedx = 1
-        self.last_attack2 = pygame.time.get_ticks()
-        self.atacou2 = False
-        self.state = STILL
-        self.lives = 1
 
     #tiro de flecha do arqueiro. 
     def shoot(self):
@@ -38,13 +22,13 @@ class Arqueiro(pygame.sprite.Sprite):
         if self.rect.left < 0 or self.rect.right > WIDTH:
             self.speedx = -self.speedx
         now = pygame.time.get_ticks()
-        if now - self.last_attack2 > 3000:
-            if not self.atacou2:
-                self.atacou2 = True
+        if now - self.last_attack > 3000:
+            if not self.atacou:
+                self.atacou = True
                 self.image = self.assets["arqueiro"]
                 self.state = ATTACK_char
                 self.shoot()
-            elif now - self.last_attack2 > 3500:
-                self.atacou2 = False
-                self.last_attack2 = now
+            elif now - self.last_attack > 3500:
+                self.atacou = False
+                self.last_attack = now
                 self.image = self.assets["arqueiro"]
