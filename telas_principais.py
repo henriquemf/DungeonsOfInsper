@@ -10,6 +10,26 @@ from classe_flecha import Flecha
 from classe_boss import Boss
 from classe_boladefogo import Bullet
 
+'''Função que determina movimento do personagem'''
+def movement(player, evento):
+    keys_down = {}
+    if evento.type == pygame.KEYDOWN:
+        keys_down[evento.key] = True
+        if evento.key == pygame.K_LEFT:
+            player.speedx -= 2
+        if evento.key == pygame.K_RIGHT:
+            player.speedx += 2
+        if evento.key == pygame.K_SPACE or evento.key == pygame.K_UP:
+            player.jump()
+        if evento.key == pygame.K_k:
+            player.attack()
+    if evento.type == pygame.KEYUP:
+        if evento.key == pygame.K_LEFT:
+            player.speedx += 2
+        if evento.key == pygame.K_RIGHT:
+            player.speedx -= 2
+        keys_down[evento.key] = False
+
 ''' definição das principais telas de ação do jogo'''
 
 def tela0(window):
@@ -48,24 +68,9 @@ def tela0(window):
             if event.type == pygame.QUIT:
                 state = DONE
                 return SAIR
-            if event.type == pygame.KEYDOWN:
-                keys_down[event.key] = True
-                if event.key == pygame.K_LEFT:
-                    player.speedx -= 2
-                if event.key == pygame.K_RIGHT:
-                    player.speedx += 2
-                if event.key == pygame.K_k:
-                    player.attack()
-                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                    player.jump()
-            if event.type == pygame.KEYUP:
-                if event.key in keys_down and keys_down[event.key]:
-                    if event.key == pygame.K_LEFT:
-                        player.speedx += 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx -= 2
-                    
-                keys_down[event.key] = False
+            if state == PLAYING:
+                evento = event
+                movement(player, evento)
         #Atualiza Jogo
 
         all_sprites.update()
@@ -140,23 +145,9 @@ def tela1(window):
             if event.type == pygame.QUIT:
                 state = DONE
                 return SAIR
-            if event.type == pygame.KEYDOWN:
-                keys_down[event.key] = True
-                if event.key == pygame.K_LEFT:
-                    player.speedx -= 2
-                if event.key == pygame.K_RIGHT:
-                    player.speedx += 2
-                if event.key == pygame.K_k:
-                    player.attack()
-                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                    player.jump()
-            if event.type == pygame.KEYUP:
-                if event.key in keys_down and keys_down[event.key]:
-                    if event.key == pygame.K_LEFT:
-                        player.speedx += 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx -= 2
-                keys_down[event.key] = False
+            if state == PLAYING:
+                evento = event
+                movement(player, evento)
         #Atualiza Jogo
 
         all_sprites.update()
@@ -234,25 +225,8 @@ def tela2(window):
             if event.type == pygame.QUIT:
                 return SAIR
             if state == PLAYING:    
-                if event.type == pygame.KEYDOWN:
-                    keys_down[event.key] = True
-                    if event.key == pygame.K_LEFT:
-                        player.speedx -= 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx += 2
-                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                        player.jump()
-                    if event.key == pygame.K_k:
-                        player.attack()
-                if event.type == pygame.KEYUP:
-                    if event.key in keys_down and keys_down[event.key]:
-                        if event.key == pygame.K_LEFT:
-                            player.speedx += 2
-                        if event.key == pygame.K_RIGHT:
-                            player.speedx -= 2
-                        if event.key == pygame.K_k:
-                            player.attack()
-                    keys_down[event.key] = False
+                evento = event
+                movement(player, evento)
         #Atualiza Jogo
         now = pygame.time.get_ticks()
         if available_mobs2 > 0 and now - last_mob2 > 500:
@@ -339,25 +313,8 @@ def tela3(window):
             if event.type == pygame.QUIT:
                 return SAIR
             if state == PLAYING:    
-                if event.type == pygame.KEYDOWN:
-                    keys_down[event.key] = True
-                    if event.key == pygame.K_LEFT:
-                        player.speedx -= 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx += 2
-                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                        player.jump()
-                    if event.key == pygame.K_k:
-                        player.attack()
-                if event.type == pygame.KEYUP:
-                    if event.key in keys_down and keys_down[event.key]:
-                        if event.key == pygame.K_LEFT:
-                            player.speedx += 2
-                        if event.key == pygame.K_RIGHT:
-                            player.speedx -= 2
-                        if event.key == pygame.K_k:
-                            player.attack()
-                    keys_down[event.key] = False
+                evento = event
+                movement(player, evento)
         #Atualiza Jogo
         
         now = pygame.time.get_ticks()
@@ -455,25 +412,8 @@ def tela4(window):
             if event.type == pygame.QUIT:
                 return SAIR
             if state == PLAYING:    
-                if event.type == pygame.KEYDOWN:
-                    keys_down[event.key] = True
-                    if event.key == pygame.K_LEFT:
-                        player.speedx -= 2
-                    if event.key == pygame.K_RIGHT:
-                        player.speedx += 2
-                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                        player.jump()
-                    if event.key == pygame.K_k:
-                        player.attack()
-                if event.type == pygame.KEYUP:
-                    if event.key in keys_down and keys_down[event.key]:
-                        if event.key == pygame.K_LEFT:
-                            player.speedx += 2
-                        if event.key == pygame.K_RIGHT:
-                            player.speedx -= 2
-                        if event.key == pygame.K_k:
-                            player.attack()
-                    keys_down[event.key] = False
+                evento = event
+                movement(player, evento)
         
         #Atualiza Jogo
         now = pygame.time.get_ticks()
