@@ -10,7 +10,7 @@ from classe_flecha import Flecha
 from classe_boss import Boss
 from classe_boladefogo import Bullet
 
-'''Função que determina movimento do personagem'''
+"Função que determina movimento do personagem"
 def movement(player, evento):
     keys_down = {}
     if evento.type == pygame.KEYDOWN:
